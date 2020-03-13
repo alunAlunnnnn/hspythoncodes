@@ -107,7 +107,6 @@ def tab2ply(tabGDB, tabset, resGDB, conAttr=False):
             arcpy.CopyFeatures_management(pntLayer, pntRes)
             # 点集转线
             resPly = arcpy.PointsToLine_management(pntRes, plyRes, "PipeID", "AAA")
-
             # 恢复源数据
             try:
                 arcpy.DeleteField_management(plyTab, "x_pnt")
