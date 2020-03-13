@@ -202,6 +202,79 @@ def tab2plg(tabGDB, tabset, resGDB):
             resTotal["empty"].append(each)
         # sys.exit()
 
+    print "finish"
+
+
+    print resTotal
+    with open(os.path.join(os.path.split(resGDB)[0], "tableStatistic_plg.txt"), "w") as f:
+        f.write(str(resTotal))
+
+
+# 表转plg
+def tab2plg(tabGDB, tabset, resGDB):
+    resTotal = {"notEmpty": [], "empty": [], "plgEnable": [], "plgAble": []}
+    arcpy.env.workspace = tabGDB
+    for each in tabset:
+        plyTab = each + u'1'
+        pntTab = each + u'2'
+        plgTab = each + u'3'
+        # 判断点的表是否为空
+        count = int(arcpy.GetCount_management(pntTab)[0])
+        print pntTab
+        # 该组表的点表非空
+        if count:
+            print "notEmpty"
+            resTotal["notEmpty"].append(each)
+            print resGDB
+            # 变量定义
+            pntTemp = os.path.join(resGDB, "pntTemp_%s" % pntTab)
+            plgRes = os.path.join(resGDB, "plg_%s" % plgTab)
+            pntRes = os.path.join(resGDB, "pnt_%s" % pntTab)
+            plyRes = os.path.join(resGDB, "ply_%s" % plyTab)
+            plgResSpatialJoin = os.path.join(resGDB, "plg_%s_withAttr" % plgTab)
+            # 添加字段
+            _AddField(pntTab, "BBB", "STRING")
+            _AddField(pntTab, "CCC", "STRING")
+            arcpy.CalculateField_management(pntTab, "BBB", "!TEXT![:-1]", "PYTHON_9.3")
+            arcpy.CalculateField_management(pntTab, "CCC", "!TEXT![-1:]", "PYTHON_9.3")
+            # 创建表视图
+            pntTabLayer = arcpy.MakeTableView_management(pntTab, "pntTabView")
+            # 创建点图层
+            pntLayer = arcpy.MakeXYEventLayer_management(pntTabLayer, "X", "Y", "pntLayer",
+                                                         "WGS 1984 Web Mercator (auxiliary sphere)")
+            # 删除所有最后一个值非字母的行
+            arcpy.Select_analysis(pntLayer, pntTemp,
+                                  "\"CCC\" = 'A' OR \"CCC\" = 'B' OR \"CCC\" = 'C' OR \"CCC\" = 'D' OR \"CCC\" = 'E'")
+            # 存在可成面的点
+            if int(arcpy.GetCount_management(pntTemp)[0]):
+                resTotal["plgAble"].append(each)
+                # 保存点数据
+                arcpy.CopyFeatures_management(pntTemp, pntRes)
+                # 点集转线
+                resPly = arcpy.PointsToLine_management(pntRes, plyRes, "BBB", "CCC", "CLOSE")
+                # 线转面
+                arcpy.FeatureToPolygon_management(resPly, plgRes)
+                # 添加属性
+                arcpy.SpatialJoin_analysis(plgRes, pntRes, plgResSpatialJoin)
+
+                # 恢复源数据
+                try:
+                    arcpy.DeleteField_management(pntTab, "BBB")
+                    arcpy.DeleteField_management(pntTab, "CCC")
+                except:
+                    pass
+
+            # 不存在可成面的点
+            else:
+                resTotal["plgEnable"].append(each)
+                continue
+
+        # 该组的点表为空
+        else:
+            print "Empty"
+            resTotal["empty"].append(each)
+        # sys.exit()
+
     print resTotal
     with open(os.path.join(os.path.split(resGDB)[0], "tableStatistic_plg.txt"), "w") as f:
         f.write(str(resTotal))
