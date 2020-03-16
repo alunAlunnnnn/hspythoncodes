@@ -46,7 +46,7 @@ def CreateGDB(outPath, outName):
 
 
 # 表转线
-def tab2ply(tabGDB, tabset, resGDB, conAttr=False):
+def tab2ply(tabGDB, tabset, resGDB, conAttr):
     # 创建输入表是否存在空值的统计结果
     resTotal = {"notEmpty": [], "empty": []}
     arcpy.env.workspace = tabGDB
@@ -79,9 +79,9 @@ def tab2ply(tabGDB, tabset, resGDB, conAttr=False):
             _AddField(plyTab, "y_pnt", "DOUBLE")
             _AddField(plyTab, "h_pnt", "DOUBLE")
             _AddField(plyTab, "AAA", "SHORT")
-            arcpy.CalculateField_management(plyTabLayer, "x_pnt", "!%s.X!"%pntTab, "PYTHON_9.3")
-            arcpy.CalculateField_management(plyTabLayer, "y_pnt", "!%s.Y!"%pntTab, "PYTHON_9.3")
-            arcpy.CalculateField_management(plyTabLayer, "h_pnt", "!%s.H!"%pntTab, "PYTHON_9.3")
+            arcpy.CalculateField_management(plyTabLayer, "x_pnt", "!%s.X!" % pntTab, "PYTHON_9.3")
+            arcpy.CalculateField_management(plyTabLayer, "y_pnt", "!%s.Y!" % pntTab, "PYTHON_9.3")
+            arcpy.CalculateField_management(plyTabLayer, "h_pnt", "!%s.H!" % pntTab, "PYTHON_9.3")
             arcpy.CalculateField_management(plyTabLayer, "AAA", "1", "PYTHON_9.3")
             # 移除链接
             arcpy.RemoveJoin_management(plyTabLayer)
@@ -108,11 +108,12 @@ def tab2ply(tabGDB, tabset, resGDB, conAttr=False):
             # 点集转线
             resPly = arcpy.PointsToLine_management(pntRes, plyRes, "PipeID", "AAA")
             # 恢复源数据
+            fields = ["x_pnt", "y_pnt", "h_pnt", "AAA"]
+            datas = [plyTab, plyTabLayer]
             try:
-                arcpy.DeleteField_management(plyTab, "x_pnt")
-                arcpy.DeleteField_management(plyTab, "y_pnt")
-                arcpy.DeleteField_management(plyTab, "h_pnt")
-                arcpy.DeleteField_management(plyTab, "AAA")
+                for data in datas:
+                    for field in fields:
+                        arcpy.DeleteField_management(data, field)
             except:
                 pass
 
@@ -121,6 +122,19 @@ def tab2ply(tabGDB, tabset, resGDB, conAttr=False):
                 resPlyLayer = arcpy.MakeFeatureLayer_management(resPly, "resPlyLayer")
                 resPlyLayer = arcpy.AddJoin_management(resPlyLayer, "PipeID", plyTabLayer, "PipeID")
                 arcpy.CopyFeatures_management(resPlyLayer, plyResWithAttr)
+                # 修改字段名
+                try:
+                    if arcpy.AlterField_management:
+                        fieldList = arcpy.ListFields(plyResWithAttr)
+                        for eachField in fieldList:
+                            if "T810" in eachField.name:
+                                fieldName = eachField.name.split("_")[-1]
+                                try:
+                                    arcpy.AlterField_management(plyResWithAttr, eachField.name, fieldName)
+                                except:
+                                    continue
+                except:
+                    pass
 
 
         # 该组的点表为空
@@ -151,7 +165,6 @@ def tab2plg(tabGDB, tabset, resGDB):
         if count:
             print "notEmpty"
             resTotal["notEmpty"].append(each)
-            print resGDB
             # 变量定义
             pntTemp = os.path.join(resGDB, "pntTemp_%s" % pntTab)
             plgRes = os.path.join(resGDB, "plg_%s" % plgTab)
@@ -224,7 +237,6 @@ def tab2plg(tabGDB, tabset, resGDB):
         if count:
             print "notEmpty"
             resTotal["notEmpty"].append(each)
-            print resGDB
             # 变量定义
             pntTemp = os.path.join(resGDB, "pntTemp_%s" % pntTab)
             plgRes = os.path.join(resGDB, "plg_%s" % plgTab)
@@ -285,13 +297,14 @@ def tab2plg(tabGDB, tabset, resGDB):
 
 
 # 输入存放表格的gdb
+# gdb = "E:/工作任务/任务一20200312/处理数据/process_1.gdb"
 gdb = "E:/工作任务/任务一20200312/处理数据/process.gdb"
 # 结果输出路径
 outPath = "E:/工作任务/任务一20200312/处理数据/"
 # 输出数据名称
 outName = "resGDB"
 # 是否在生成的线上添加属性
-conAttr = False
+conAttr = True
 
 # 编码转换
 codeType = "utf-8"
