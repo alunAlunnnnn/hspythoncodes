@@ -38,7 +38,7 @@ def _CopyTab(inTab, outTab):
 # 创建数据库
 def CreateGDB(outPath, outName):
     if not os.path.exists(os.path.join(outPath, outName + ".gdb")):
-        print os.path.join(outPath, outName)
+        print(os.path.join(outPath, outName))
         resGDB = arcpy.CreateFileGDB_management(outPath, outName)
     else:
         resGDB = os.path.join(outPath, outName + ".gdb")
@@ -51,24 +51,24 @@ def tab2ply(tabGDB, tabset, resGDB, conAttr):
     resTotal = {"notEmpty": [], "empty": []}
     arcpy.env.workspace = tabGDB
     for each in tabset:
-        plyTab = each + u'1'
-        pntTab = each + u'2'
+        plyTab = each + '1'
+        pntTab = each + '2'
         # 判断点的表是否为空
         count = int(arcpy.GetCount_management(pntTab)[0])
-        print count
+        print(count)
         # 该组表的点表非空
         if count:
-            print "notEmpty"
+            print("notEmpty")
             resTotal["notEmpty"].append(each)
-            print resGDB
+            print(resGDB)
             # 定义输出变量
             outPlyStartTab = os.path.join(resGDB, "plyConPnt_%s_Start" % plyTab)
             outPlyStopTab = os.path.join(resGDB, "plyConPnt_%s_Stop" % plyTab)
             pntRes = os.path.join(resGDB, "pnt_%s" % plyTab)
             plyRes = os.path.join(resGDB, "ply_%s" % plyTab)
             plyResWithAttr = os.path.join(resGDB, "ply_%s_withAttr" % plyTab)
-            print plyTab
-            print pntTab
+            print(plyTab)
+            print(pntTab)
             # 创建表视图
             plyTabLayer = arcpy.MakeTableView_management(plyTab, "plyTabView")
             pntTabLayer = arcpy.MakeTableView_management(pntTab, "pntTabView")
@@ -139,15 +139,15 @@ def tab2ply(tabGDB, tabset, resGDB, conAttr):
 
         # 该组的点表为空
         else:
-            print "Empty"
+            print("Empty")
             resTotal["empty"].append(each)
         # sys.exit()
 
-    print resTotal
+    print(resTotal)
     with open(os.path.join(os.path.split(resGDB)[0], "tableStatistic_ply.txt"), "w") as f:
         f.write(str(resTotal))
 
-    print "finish"
+    print("finish")
 
 
 # 表转plg
@@ -160,10 +160,10 @@ def tab2plg(tabGDB, tabset, resGDB):
         plgTab = each + u'3'
         # 判断点的表是否为空
         count = int(arcpy.GetCount_management(pntTab)[0])
-        print pntTab
+        print(pntTab)
         # 该组表的点表非空
         if count:
-            print "notEmpty"
+            print("notEmpty")
             resTotal["notEmpty"].append(each)
             # 变量定义
             pntTemp = os.path.join(resGDB, "pntTemp_%s" % pntTab)
@@ -210,14 +210,14 @@ def tab2plg(tabGDB, tabset, resGDB):
 
         # 该组的点表为空
         else:
-            print "Empty"
+            print("Empty")
             resTotal["empty"].append(each)
         # sys.exit()
 
-    print "finish"
+    print("finish")
 
 
-    print resTotal
+    print(resTotal)
     with open(os.path.join(os.path.split(resGDB)[0], "tableStatistic_plg.txt"), "w") as f:
         f.write(str(resTotal))
 
@@ -232,10 +232,10 @@ def tab2plg(tabGDB, tabset, resGDB):
         plgTab = each + u'3'
         # 判断点的表是否为空
         count = int(arcpy.GetCount_management(pntTab)[0])
-        print pntTab
+        print(pntTab)
         # 该组表的点表非空
         if count:
-            print "notEmpty"
+            print("notEmpty")
             resTotal["notEmpty"].append(each)
             # 变量定义
             pntTemp = os.path.join(resGDB, "pntTemp_%s" % pntTab)
@@ -282,15 +282,15 @@ def tab2plg(tabGDB, tabset, resGDB):
 
         # 该组的点表为空
         else:
-            print "Empty"
+            print("Empty")
             resTotal["empty"].append(each)
         # sys.exit()
 
-    print resTotal
+    print(resTotal)
     with open(os.path.join(os.path.split(resGDB)[0], "tableStatistic_plg.txt"), "w") as f:
         f.write(str(resTotal))
 
-    print "finish"
+    print("finish")
 
 
 
@@ -299,18 +299,19 @@ def tab2plg(tabGDB, tabset, resGDB):
 # 输入存放表格的gdb
 # gdb = "E:/工作任务/任务一20200312/处理数据/process_1.gdb"
 gdb = "E:/工作任务/任务一20200312/处理数据/process.gdb"
+# gdb = "E:/工作任务/任务一20200312/处理数据/arcgisPro处理.gdb"
 # 结果输出路径
 outPath = "E:/工作任务/任务一20200312/处理数据/"
 # 输出数据名称
-outName = "resGDB"
+outName = "resGDB_pro"
 # 是否在生成的线上添加属性
 conAttr = True
 
-# 编码转换
-codeType = "utf-8"
-gdb = gdb.decode(codeType)
-outPath = outPath.decode(codeType)
-outName = outName.decode(codeType)
+# # 编码转换，仅python2
+# codeType = "utf-8"
+# gdb = gdb.decode(codeType)
+# outPath = outPath.decode(codeType)
+# outName = outName.decode(codeType)
 
 # 将表分组
 tabSet = DistincTable(gdb)
